@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MWK Cellular Network ARFCN Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .content {
+            padding: 30px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .network-info {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #555;
+        }
+
+        .network-info div {
+            padding: 5px 0;
+        }
+
+        .calculator {
+            text-align: center;
+        }
+
+        .calculator label {
+            display: block;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .calculator input {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+        }
+
+        .calculator input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .calculator button {
+            margin-top: 15px;
+            padding: 12px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .calculator button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .calculator button:active {
+            transform: translateY(0);
+        }
+
+        .results {
+            background: #e8f4f8;
+            border-left-color: #17a2b8;
+        }
+
+        .result-item {
+            padding: 10px 0;
+            font-size: 15px;
+            color: #333;
+            border-bottom: 1px solid #d0e8ef;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #17a2b8;
+        }
+
+        .capabilities {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+
+        .dialer-codes {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .calculator input {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MWK Cellular Network ARFCN Calculator</h1>
+        </div>
+
+        <div class="content">
+            <!-- Network Ranges -->
+            <div class="section">
+                <h2>Network Ranges</h2>
+                <div class="network-info">
+                    <div><strong>GSM 900:</strong> 1-124, 128-251</div>
+                    <div><strong>GSM 1800:</strong> 512-885, 1024-1885</div>
+                    <div><strong>UMTS 2100:</strong> 10562-10687</div>
+                    <div><strong>LTE 1800:</strong> 300-379</div>
+                </div>
+            </div>
+
+            <!-- Calculator -->
+            <div class="section calculator">
+                <h2>Calculator</h2>
+                <label for="arfcn">Enter ARFCN:</label>
+                <input type="number" id="arfcn" placeholder="e.g., 100">
+                <button onclick="calculate()">Calculate</button>
+                <div id="error"></div>
+            </div>
+
+            <!-- Results -->
+            <div class="section results" id="resultsSection" style="display: none;">
+                <h2>Results</h2>
+                <div class="result-item">
+                    <span class="result-label">Uplink Frequency:</span>
+                    <span id="uplink">-- MHz</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Downlink Frequency:</span>
+                    <span id="downlink">-- MHz</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Center Frequency:</span>
+                    <span id="centerFreq">-- MHz</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Channel Spacing:</span>
+                    <span id="channelSpacing">-- MHz</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Network Type:</span>
+                    <span id="networkType">--</span>
+                </div>
+            </div>
+
+            <!-- Network Capabilities -->
+            <div class="section capabilities" id="capabilitiesSection" style="display: none;">
+                <h2>Network Capabilities</h2>
+                <div class="result-item">
+                    <span class="result-label">Technology:</span>
+                    <span id="technology">--</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Max Data Rate:</span>
+                    <span id="dataRate">--</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Features:</span>
+                    <span id="features">--</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Modulation:</span>
+                    <span id="modulation">--</span>
+                </div>
+            </div>
+
+            <!-- Dialer Codes -->
+            <div class="section dialer-codes">
+                <h2>Network Info Dialer Codes</h2>
+                <div class="network-info">
+                    <div><strong>Android (Legacy):</strong> *#*#4636#*#*</div>
+                    <div><strong>Android (Modern/Samsung):</strong> *#0011#</div>
+                    <div><strong>iPhone:</strong> *3001#12345#*</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const NETWORK_RANGES = {
+            'GSM 900': [[1, 124], [128, 251]],
+            'GSM 1800': [[512, 885], [1024, 1885]],
+            'UMTS 2100': [[10562, 10687]],
+            'LTE 1800': [[300, 379]]
+        };
+
+        const CHANNEL_SPACING = {
+            'GSM 900': 0.2,
+            'GSM 1800': 0.2,
+            'UMTS 2100': 5.0,
+            'LTE 1800': 0.1
+        };
+
+        const NETWORK_CAPABILITIES = {
+            'GSM 900': {
+                'Technology': '2G',
+                'Max Data Rate': '115 Kbps (GPRS), 384 Kbps (EDGE)',
+                'Features': 'Voice calls, SMS, Basic data',
+                'Modulation': 'GMSK, 8PSK (EDGE)'
+            },
+            'GSM 1800': {
+                'Technology': '2G',
+                'Max Data Rate': '115 Kbps (GPRS), 384 Kbps (EDGE)',
+                'Features': 'Voice calls, SMS, Basic data',
+                'Modulation': 'GMSK, 8PSK (EDGE)'
+            },
+            'UMTS 2100': {
+                'Technology': '3G',
+                'Max Data Rate': '42 Mbps (DC-HSPA+)',
+                'Features': 'Video calls, High-speed data, Enhanced security',
+                'Modulation': 'QPSK, 16QAM'
+            },
+            'LTE 1800': {
+                'Technology': '4G',
+                'Max Data Rate': 'Up to 150 Mbps',
+                'Features': 'High-speed data, VoLTE, Low latency',
+                'Modulation': 'QPSK, 16QAM, 64QAM'
+            }
+        };
+
+        function calculateGSM900(arfcn) {
+            const uplink = 890 + arfcn * 0.2;
+            const downlink = 935 + arfcn * 0.2;
+            return [uplink, downlink];
+        }
+
+        function calculateGSM1800(arfcn) {
+            let baseArfcn;
+            if (arfcn >= 512 && arfcn <= 885) {
+                baseArfcn = arfcn - 512;
+            } else {
+                baseArfcn = arfcn - 1024;
+            }
+            const uplink = 1710 + baseArfcn * 0.2;
+            const downlink = 1805 + baseArfcn * 0.2;
+            return [uplink, downlink];
+        }
+
+        function calculateUMTS2100(arfcn) {
+            const uplink = 1920 + arfcn * 0.2;
+            const downlink = 2110 + arfcn * 0.2;
+            return [uplink, downlink];
+        }
+
+        function calculateLTE1800(arfcn) {
+            const baseArfcn = arfcn - 300;
+            const uplink = 1710 + baseArfcn * 0.1;
+            const downlink = 1805 + baseArfcn * 0.1;
+            return [uplink, downlink];
+        }
+
+        function detectNetwork(arfcn) {
+            for (const [network, ranges] of Object.entries(NETWORK_RANGES)) {
+                for (const [start, end] of ranges) {
+                    if (arfcn >= start && arfcn <= end) {
+                        return network;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function calculate() {
+            const errorDiv = document.getElementById('error');
+            errorDiv.innerHTML = '';
+
+            try {
+                const arfcn = parseInt(document.getElementById('arfcn').value);
+
+                if (isNaN(arfcn)) {
+                    throw new Error('Please enter a valid ARFCN number');
+                }
+
+                const network = detectNetwork(arfcn);
+                if (!network) {
+                    throw new Error(`ARFCN ${arfcn} is not in any known network range`);
+                }
+
+                let uplink, downlink;
+
+                switch (network) {
+                    case 'GSM 900':
+                        [uplink, downlink] = calculateGSM900(arfcn);
+                        break;
+                    case 'GSM 1800':
+                        [uplink, downlink] = calculateGSM1800(arfcn);
+                        break;
+                    case 'UMTS 2100':
+                        [uplink, downlink] = calculateUMTS2100(arfcn);
+                        break;
+                    case 'LTE 1800':
+                        [uplink, downlink] = calculateLTE1800(arfcn);
+                        break;
+                }
+
+                const centerFreq = (uplink + downlink) / 2;
+                const channelSpacing = CHANNEL_SPACING[network];
+                const capabilities = NETWORK_CAPABILITIES[network];
+
+                // Update results
+                document.getElementById('uplink').textContent = uplink.toFixed(3) + ' MHz';
+                document.getElementById('downlink').textContent = downlink.toFixed(3) + ' MHz';
+                document.getElementById('centerFreq').textContent = centerFreq.toFixed(3) + ' MHz';
+                document.getElementById('channelSpacing').textContent = channelSpacing + ' MHz';
+                document.getElementById('networkType').textContent = network;
+
+                // Update capabilities
+                document.getElementById('technology').textContent = capabilities.Technology;
+                document.getElementById('dataRate').textContent = capabilities['Max Data Rate'];
+                document.getElementById('features').textContent = capabilities.Features;
+                document.getElementById('modulation').textContent = capabilities.Modulation;
+
+                // Show results
+                document.getElementById('resultsSection').style.display = 'block';
+                document.getElementById('capabilitiesSection').style.display = 'block';
+
+            } catch (error) {
+                errorDiv.innerHTML = `<div class="error">${error.message}</div>`;
+                document.getElementById('resultsSection').style.display = 'none';
+                document.getElementById('capabilitiesSection').style.display = 'none';
+            }
+        }
+
+        // Allow Enter key to trigger calculation
+        document.getElementById('arfcn').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                calculate();
+            }
+        });
+    </script>
+</body>
+</html>
